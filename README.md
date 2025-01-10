@@ -12,6 +12,7 @@ This system combines document retrieval using FAISS with multiple language model
 - Semantic search using FAISS index
 - Multiple model support:
   - GPT-2
+  - GEMINI
   - T5
   - BERT
   - DistilBERT
