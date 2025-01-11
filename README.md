@@ -175,10 +175,3 @@ Graphs are saved in the `evaluation_graphs` directory.
 5. Batch processing capabilities
 6. Response confidence scoring
 
-## License
-
-[Your chosen license]
-
-## Contact
-
-[Your contact information]
