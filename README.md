@@ -1,24 +1,32 @@
 # Drug Information RAG System
 
-A Retrieval-Augmented Generation (RAG) system for drug-related question answering, comparing multiple language models.
+A Retrieval-Augmented Generation (RAG) system for drug-related question answering, comparing multiple language models including state-of-the-art models like LLAMA-2 and Gemini.
 
 ## Overview
 
-This system combines document retrieval using FAISS with multiple language models (GPT-2, T5, BERT, DistilBERT, and BLOOM) to answer questions about drugs. It includes components for data processing, embedding generation, similarity search, and answer generation.
+This system combines document retrieval using FAISS with multiple language models to answer questions about drugs. It includes comprehensive evaluation metrics and visualization capabilities.
 
 ## Features
 
+### Models Supported
+- GPT-2
+- T5 (Large)
+- BiomedBERT (Microsoft BiomedNLP)
+- BERT (Large uncased)
+- DistilBERT
+- DistilGPT2
+- ELECTRA
+- BLOOM
+- LLAMA-2
+- Gemini
+
+### Components
 - Document chunking and preprocessing
-- Semantic search using FAISS index
-- Multiple model support:
-  - GPT-2
-  - GEMINI
-  - T5
-  - BERT
-  - DistilBERT
-  - BLOOM
+- Semantic search using FAISS
+- Multiple model comparison
 - Comprehensive evaluation metrics
-- Performance benchmarking
+- Performance visualization
+- API integration (Replicate API for LLAMA-2, Google AI for Gemini)
 
 ## Requirements
 
@@ -31,7 +39,14 @@ pip install transformers
 pip install nltk
 pip install pandas
 pip install numpy
+pip install matplotlib
+pip install google-generativeai
+pip install replicate
 ```
+
+## API Keys Required
+- Google AI API key for Gemini
+- Replicate API token for LLAMA-2
 
 ## Project Structure
 
@@ -43,108 +58,127 @@ pip install numpy
 │   └── data_with_embeddings_final.parquet
 ├── models/
 │   └── faiss_index_final.bin
-└── evaluation/
-    └── rag_evaluation_results.csv
+├── evaluation/
+│   ├── rag_evaluation_results.csv
+│   └── evaluation_graphs/
+│       ├── rouge1_comparison.png
+│       ├── rouge2_comparison.png
+│       ├── rougeL_comparison.png
+│       ├── bleu_comparison.png
+│       ├── f1_comparison.png
+│       ├── cosine_similarity_comparison.png
+│       └── execution_time_comparison.png
 ```
 
-## Usage
+## Evaluation Metrics
 
-### 1. Data Processing
-
-```python
-# Load and process the data
-df = pd.read_csv("sample.csv")
-processed_df = process_data(df)
-processed_df.to_csv("processed_data.csv", index=False)
-```
-
-### 2. Generate Embeddings
-
-```python
-# Generate embeddings using SentenceTransformer
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-processed_df['embeddings'] = processed_df['chunk'].apply(lambda x: model.encode(x).tolist())
-```
-
-### 3. Create FAISS Index
-
-```python
-# Convert embeddings to numpy array and create FAISS index
-embeddings = np.array(processed_df['embeddings'].tolist(), dtype='float32')
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(embeddings)
-```
-
-### 4. Query the System
-
-```python
-# Example query
-query = "What is Bismuth Stibium?"
-query_embedding = model.encode(query).astype('float32').reshape(1, -1)
-distances, indices = index.search(query_embedding, 5)
-relevant_contexts = processed_df.iloc[indices[0]]['chunk'].tolist()
-```
-
-### 5. Generate Answers
-
-```python
-# Generate answers using different models
-gpt2_answer = generate_answer_with_context_gpt2(query, context)
-t5_answer = generate_answer_with_context_t5(query, context)
-bert_answer = generate_answer_with_context_bert(query, context)
-distilbert_answer = generate_answer_with_context_distilbert(query, context)
-bloom_answer = generate_answer_with_context_bloom(query, context)
-```
-
-## Evaluation
-
-The system includes comprehensive evaluation metrics:
-
+The system now includes enhanced evaluation metrics:
 - ROUGE scores (ROUGE-1, ROUGE-2, ROUGE-L)
 - BLEU score
 - Exact match score
 - F1 score
+- Cosine similarity
 - Execution time
 
-To run evaluation:
+## Usage
+
+### 1. Set up API Keys
+
+```python
+# For Gemini
+os.environ["GOOGLE_API_KEY"] = "your_google_api_key"
+
+# For LLAMA-2
+os.environ["REPLICATE_API_TOKEN"] = "your_replicate_api_token"
+```
+
+### 2. Initialize Models
+
+```python
+# Import required model functions
+from transformers import (
+    T5ForConditionalGeneration,
+    GPT2LMHeadModel,
+    BertForQuestionAnswering,
+    DistilBertForQuestionAnswering,
+    ElectraForQuestionAnswering
+)
+```
+
+### 3. Query the System
+
+```python
+# Example query
+query = "What is Bismuth Stibium?"
+context = get_relevant_context(query)
+
+# Generate answers using different models
+t5_answer = generate_answer_with_context_t5(query, context)
+llama2_answer = generate_answer_with_context_LAMA_2(query, context)
+gemini_answer = generate_answer_with_context_gemini(query, context)
+```
+
+### 4. Run Evaluation
 
 ```python
 test_data = [
     {
-        'question': 'What is Bismuth Stibium?',
-        'context': get_relevant_context('What is Bismuth Stibium?'),
-        'reference_answer': 'Reference answer here'
+        'question': 'What is the Active Ingredients of Bismuth Stibium?',
+        'context': actual_context,
+        'reference_answer': 'Active Ingredients: [reference answer]'
     }
 ]
 
-evaluation_results = evaluate_all_models(test_data, models)
+results = evaluate_all_models(test_data, models)
 ```
 
-## Model Performance
+### 5. Generate Visualizations
 
-Typical performance metrics (example):
-- GPT-2: Best ROUGE-1 (0.2872) and BLEU (0.3203)
-- T5: Best ROUGE-2 (0.1061)
-- BLOOM: Best ROUGE-L (0.2088)
-- DistilBERT: Fastest execution (0.87s)
+```python
+# Plot comparison graphs
+for metric in metrics:
+    plot_metric_comparison(df_results, metric, output_directory)
+```
+
+## Visualization
+
+The system automatically generates comparison graphs for:
+- ROUGE scores comparison
+- BLEU score comparison
+- F1 score comparison
+- Cosine similarity comparison
+- Execution time comparison
+
+Graphs are saved in the `evaluation_graphs` directory.
+
+## Model Performance Considerations
+
+- LLAMA-2 and Gemini typically provide more detailed and accurate responses
+- T5-Large shows good performance for specific medical terminology
+- BERT-based models are faster but may provide shorter answers
+- Consider execution time vs accuracy tradeoffs when choosing models
 
 ## Limitations
 
+- API rate limits for Gemini and LLAMA-2
 - Token length limitations for each model
 - Context retrieval quality depends on embedding similarity
-- Processing time varies significantly between models
-- Memory requirements for larger datasets
+- Memory requirements for larger models
+- API costs for commercial usage
 
 ## Future Improvements
 
-1. Model fine-tuning for domain-specific knowledge
-2. Improved context retrieval methods
-3. Hybrid search combining semantic and keyword matching
-4. Streaming response generation
-5. Caching frequently asked questions
+1. Model fine-tuning for medical domain
+2. Response verification against medical databases
+3. Multi-language support
+4. Automated model selection based on query type
+5. Batch processing capabilities
+6. Response confidence scoring
 
-## Contributing
+## License
 
-Feel free to submit issues and enhancement requests!
+[Your chosen license]
 
+## Contact
+
+[Your contact information]
